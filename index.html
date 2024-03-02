@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" >
+  <title>• YouTube Search •</title>
+  <style>
+    body {
+      background-color: #f8f9fa;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 50px auto;
+    }
+
+    .sticky-top {
+      position: -webkit-sticky;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background-color: #ffffff;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .btn-primary {
+      background-color: #ff0000;
+      border-color: #ff0000;
+      height: 38px;
+    }
+
+    .btn-primary:hover {
+      background-color: #cc0000;
+      border-color: #cc0000;
+    }
+
+    .card {
+      background-color: #fff;
+      border-color: #ccc;
+    }
+
+    .card-title {
+      color: #333;
+    }
+
+    .card-img-top {
+      border-bottom: 1px solid #ccc;
+    }
+
+    #videoContainer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .video-wrapper {
+      position: relative;
+      width: 80%;
+      max-width: 800px;
+      padding-top: 56.25%; /* Proporção 16:9 */
+      margin: 0 auto;
+    }
+
+    .video-wrapper iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .error-message {
+      text-align: center;
+      margin-top: 20px;
+      color: red;
+    }
+    
+    #videoPlayer {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container mt-5">
+  <div class="sticky-top">
+    <div class="input-group mb-3">
+      <input type="text" class="form-control" id="searchQuery" placeholder="Pesquisar vídeos...">
+      <div class="input-group-append">
+        <button class="btn btn-primary" id="searchBtn"><i class="fas fa-search"></i></button>
+      </div>
+    </div>
+  </div>
+  <div id="searchResults"></div>
+</div>
+
+<div id="videoContainer" style="display:none;">
+  <div class="video-wrapper">
+    <iframe id="videoPlayer" width="100" height="100" frameborder="0" allowfullscreen></iframe>
+  </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+  $(document).ready(function() {
+    $('#searchBtn').click(function() {
+      var searchQuery = $('#searchQuery').val();
+      searchVideos(searchQuery);
+    });
+
+    var videoId = getUrlParameter('id');
+    if (videoId) {
+      var embedUrl = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1';
+      $('#videoPlayer').attr('src', embedUrl);
+      $('#searchResults').hide();
+      $('#videoContainer').show();
+    }
+  });
+
+  function searchVideos(query) {
+    $.get('https://www.googleapis.com/youtube/v3/search', {
+      part: 'snippet',
+      q: query,
+      type: 'video',
+      key: 'AIzaSyCfWn1T9uZbQNSJwhy-cpkMHUFRdR9_3fY',
+      maxResults: 10
+    }, function(data) {
+      displayResults(data.items);
+    });
+  }
+
+  function displayResults(items) {
+    var resultsContainer = $('#searchResults');
+    resultsContainer.empty();
+    items.forEach(function(item) {
+      var videoId = item.id.videoId;
+      var title = item.snippet.title;
+      var thumbnailUrl = item.snippet.thumbnails.medium.url;
+      var videoHtml = '<div class="card mb-3">' +
+                         '<img src="' + thumbnailUrl + '" class="card-img-top" alt="Miniatura do Vídeo">' +
+                         '<div class="card-body">' +
+                           '<h5 class="card-title">' + title + '</h5>' +
+                           '<a href="?id=' + videoId + '" class="btn btn-primary"><i class="fab fa-youtube"></i> Assistir</a>' +
+                         '</div>' +
+                       '</div>';
+      resultsContainer.append(videoHtml);
+    });
+  }
+
+  function getUrlParameter(name) {
+    name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+    var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+    var results = regex.exec(location.search);
+    return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+  }
+</script>
+
+</body>
+</html>
